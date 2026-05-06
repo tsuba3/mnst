@@ -109,8 +109,10 @@ export class InGameScene implements Scene {
       onAimEnd: () => {
         if (!this.aim.active || !this.game) return;
         this.aim.active = false;
-        const dx = this.aim.startX - this.aim.currentX;
-        const dy = this.aim.startY - this.aim.currentY;
+        // pullDx/pullDy は「指がひっぱった方向」(spec/03-ai-api.md)。
+        // fireFromPull は内部でその逆方向へ発射する。
+        const dx = this.aim.currentX - this.aim.startX;
+        const dy = this.aim.currentY - this.aim.startY;
         this.game.fireFromPull(dx, dy);
       },
       onAimCancel: () => {
