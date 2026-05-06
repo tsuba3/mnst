@@ -6,4 +6,9 @@ dist
 
 # Playwright MCP のセッション中に生成されるアーティファクト
 .playwright-mcp/
+
+# AI / Playwright で撮った日次スクリーンショット (.playwright-screenshot/yyyymmdd/)
+.playwright-screenshot/
+
+# 過去のデモ画像（運用ルール変更前の名残）
 demo-*.png

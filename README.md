@@ -31,6 +31,15 @@ npm run preview     # ビルド後をローカル確認
 ## ディレクトリ構成
 
 ```
+spec/                     # 仕様書（spec ファースト運用、実装より優先）
+  README.md               # 目次
+  00-overview.md          # ゲーム全体像
+  01-physics.md           # 物理仕様（数値含む一次情報）
+  02-game-flow.md         # フェーズ遷移
+  03-ai-api.md            # window.__game の API
+  04-stages.md            # ステージ定義
+  05-events.md            # GameEvent 構造化ログ
+
 src/
   main.ts                 # ブラウザのエントリ。canvas/UI/AI APIを束ねる
   game/
@@ -43,7 +52,14 @@ src/
   stages/
     stage001.ts           # ステージ定義
 index.html                # HUDとCanvasレイアウト
+
+CLAUDE.md                 # AI エージェント向けのガイド
+.playwright-screenshot/   # Playwright で撮った画像 (gitignore)
+.playwright-mcp/          # Playwright MCP の作業領域 (gitignore)
 ```
+
+> **spec ファースト**: 仕様変更が必要なら、まず `spec/` を直してからコードを直す。
+> 詳細は [`spec/README.md`](spec/README.md) と [`CLAUDE.md`](CLAUDE.md) を参照。
 
 設計のポイントは **「ロジック / 入力 / 描画を分離する」** こと。
 - `Game` は描画も DOM も知らない。`requestAnimationFrame` も持たない。
@@ -58,6 +74,8 @@ index.html                # HUDとCanvasレイアウト
 
 `window.__game` がブラウザコンソールに公開される（`src/main.ts` の末尾）。
 Playwright / Puppeteer / DevTools Protocol などでそのまま叩けます。
+
+> 完全なリファレンスは [`spec/03-ai-api.md`](spec/03-ai-api.md) を参照。以下は典型的な使い方の抜粋。
 
 ```ts
 // 現在の状態を取る
@@ -139,6 +157,29 @@ aiming に戻る
 - 速度: `len * PULL_TO_SPEED(=6)` ピクセル/秒、`MAX_SPEED(=1400)` で上限
 - 減速: `exp(-1.6 * dt)`
 - 停止判定: `|v| < STOP_SPEED(=18)`
+
+---
+
+## Playwright MCP で AI に操作させる
+
+Claude Code から Playwright MCP 経由で `window.__game` を叩けば、コードを 1 行も書かずに AI にプレイさせられます。
+
+```js
+// Claude が browser_evaluate で実行する想定
+__game.setDebug(true);
+__game.clearEvents();
+__game.fire({ angleDeg: -75, power: 0.85 });
+// ...物理が落ち着いたら
+__game.events().filter(e => e.t === "hit");
+```
+
+### 運用ルール
+
+- **スクショは `.playwright-screenshot/{yyyymmdd}/` に保存する**（gitignore 済み）
+  - `browser_take_screenshot` の `filename` で明示的にパス指定する
+  - ファイル名は内容が分かるもの（例: `turn5-after-fire.png`）
+- console エラー / network ログは Playwright MCP の `browser_console_messages` / `browser_network_requests` で取れる
+- 詳細は [`CLAUDE.md`](CLAUDE.md) §6 を参照
 
 ---
 
