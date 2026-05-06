@@ -1,0 +1,9 @@
+node_modules
+dist
+.DS_Store
+*.log
+.vite
+
+# Playwright MCP のセッション中に生成されるアーティファクト
+.playwright-mcp/
+demo-*.png
