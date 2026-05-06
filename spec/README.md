@@ -16,6 +16,7 @@
 | [03-ai-api.md](./03-ai-api.md) | `window.__game` AI 操作 API |
 | [04-stages.md](./04-stages.md) | ステージ定義の JSON スキーマ |
 | [05-events.md](./05-events.md) | `GameEvent` 構造化ログ |
+| [06-screens.md](./06-screens.md) | 画面構成（タイトル / アウトゲーム / インゲーム） |
 
 ## 仕様書の変更ルール
 

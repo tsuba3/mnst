@@ -8,13 +8,21 @@
     <style>
       :root {
         color-scheme: dark;
+        --bg: #0b0f1a;
+        --panel: #131a2b;
+        --text: #e8ecf4;
+        --muted: #94a3b8;
+        --primary: #5eead4;
+        --primary-ink: #0b0f1a;
+        --secondary: rgba(40,52,80,0.85);
+        --accent: #fde68a;
       }
       html, body {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #0b0f1a;
-        color: #e8ecf4;
+        background: var(--bg);
+        color: var(--text);
         font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", sans-serif;
         overflow: hidden;
         touch-action: none;
@@ -32,17 +40,96 @@
         height: min(100vh, calc(100vw * 16 / 9));
         max-width: 100vw;
         max-height: 100vh;
+        background: var(--panel);
+        overflow: hidden;
       }
-      canvas {
+
+      /* Scene base */
+      .scene {
+        position: absolute;
+        inset: 0;
+      }
+      .scene[hidden] { display: none !important; }
+
+      /* Buttons */
+      button {
+        background: var(--secondary);
+        color: var(--text);
+        border: 1px solid rgba(255,255,255,0.15);
+        padding: 10px 18px;
+        border-radius: 10px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.primary {
+        background: var(--primary);
+        color: var(--primary-ink);
+        border: none;
+      }
+      button.secondary {
+        background: var(--secondary);
+      }
+      button:active { transform: scale(0.97); }
+
+      /* Title scene */
+      .scene-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(ellipse at top, #1e293b 0%, #0b0f1a 70%);
+      }
+      .title-inner {
+        text-align: center;
+        padding: 24px;
+      }
+      .title-logo {
+        font-size: 48px;
+        margin: 0 0 12px;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .title-sub {
+        color: var(--muted);
+        margin: 0 0 32px;
+      }
+      .title-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+      }
+      .title-buttons button { min-width: 180px; font-size: 18px; padding: 14px 24px; }
+      .title-hint {
+        margin-top: 32px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      /* OutGame scene */
+      .scene-outgame {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .outgame-inner { text-align: center; padding: 24px; }
+      .outgame-inner h2 { margin-top: 0; }
+      .outgame-inner .muted { color: var(--muted); margin: 0 0 32px; }
+
+      /* InGame scene */
+      .scene-ingame canvas {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
         display: block;
-        background: #131a2b;
+        background: var(--panel);
         touch-action: none;
       }
-      .ui {
+      .scene-ingame .ui {
         position: absolute;
         inset: 0;
         pointer-events: none;
@@ -52,7 +139,7 @@
         padding: 12px;
         font-size: 13px;
       }
-      .hud {
+      .scene-ingame .hud {
         display: flex;
         justify-content: space-between;
         gap: 8px;
@@ -61,54 +148,49 @@
         border-radius: 10px;
         backdrop-filter: blur(6px);
       }
-      .footer {
+      .scene-ingame .footer {
         display: flex;
         gap: 8px;
         justify-content: center;
         pointer-events: auto;
       }
-      button {
-        pointer-events: auto;
-        background: rgba(40,52,80,0.85);
-        color: #fff;
-        border: 1px solid rgba(255,255,255,0.15);
-        padding: 8px 14px;
-        border-radius: 8px;
-        font: inherit;
-        cursor: pointer;
-      }
-      button:active { transform: scale(0.97); }
-      .banner {
+      .scene-ingame .footer button { padding: 8px 14px; font-size: 13px; }
+
+      .scene-ingame .banner {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 28px;
-        font-weight: 700;
-        text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
         opacity: 0;
-        transition: opacity 0.2s ease;
         pointer-events: none;
+        transition: opacity 0.2s ease;
+        background: rgba(0,0,0,0.4);
       }
-      .banner.show { opacity: 1; }
+      .scene-ingame .banner.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .scene-ingame .banner-text {
+        font-size: 36px;
+        font-weight: 700;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+      }
+      .scene-ingame .banner-buttons {
+        display: flex;
+        gap: 12px;
+      }
+      .scene-ingame .banner-buttons[hidden] { display: none; }
     </style>
   </head>
   <body>
     <div id="app">
       <div class="stage">
-        <canvas id="game"></canvas>
-        <div class="ui">
-          <div class="hud" id="hud">
-            <span id="hud-turn">Turn 1</span>
-            <span id="hud-phase">aiming</span>
-            <span id="hud-enemies">enemies: -</span>
-          </div>
-          <div class="footer">
-            <button id="btn-reset">Reset</button>
-            <button id="btn-debug">Debug</button>
-          </div>
-        </div>
-        <div class="banner" id="banner"></div>
+        <div class="scene scene-title" data-scene="title"></div>
+        <div class="scene scene-outgame" data-scene="outgame" hidden></div>
+        <div class="scene scene-ingame" data-scene="ingame" hidden></div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
